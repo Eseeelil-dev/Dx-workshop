@@ -10,7 +10,9 @@ private:
     ID3D11DeviceContext* pDeviceContext;
     IDXGISwapChain* pSwapChain;
     ID3D11Texture2D* pBackBuffer;
+    ID3D11Texture2D* pDepthStencil;
     ID3D11RenderTargetView* pRenderTarget;
+    ID3D11DepthStencilView* pDepthStencilView;
 
     Model model;
 

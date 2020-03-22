@@ -17,8 +17,8 @@ cbuffer cbPerFrame : register(b1)
 //--------------------------------------------------------------------------------------
 // Textures and Samplers
 //--------------------------------------------------------------------------------------
-// Texture2D    g_txDiffuse : register(t0);
-// SamplerState g_samLinear : register(s0);
+Texture2D    g_txDiffuse : register(t0);
+SamplerState g_samLinear : register(s0);
 
 //--------------------------------------------------------------------------------------
 // Input / Output structures
@@ -36,10 +36,18 @@ struct PS_INPUT
 //--------------------------------------------------------------------------------------
 float4 PSMain(PS_INPUT Input) : SV_TARGET
 {
-    // float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);
+    float4 vDiffuse = g_txDiffuse.Sample(g_samLinear, Input.vTexcoord);
+    /*
+    Input.vColor.x = Input.vColor.x * 0.75;
+    Input.vColor.y = Input.vColor.y * 0.75;
+    Input.vColor.z = Input.vColor.z * 0.75;
 
+    vDiffuse.x = (vDiffuse.x + Input.vColor.x) / 2;
+    vDiffuse.y = (vDiffuse.z + Input.vColor.y) / 2;
+    vDiffuse.z = (vDiffuse.y + Input.vColor.z) / 2;
+    */
     // float fLighting = saturate(dot(g_vLightDir, Input.vNormal));
     // fLighting = max(fLighting, g_fAmbient);
 
-    return float4(Input.vColor, 1.0);
+    return vDiffuse;
 }

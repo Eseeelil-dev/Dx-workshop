@@ -33,6 +33,12 @@
     <ClInclude Include="Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Dx-Workshop.cpp">
@@ -47,6 +53,12 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Dx-Workshop.rc">
@@ -59,7 +71,13 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="PixelShader.hlsl" />
-    <None Include="VertexShader.hlsl" />
+    <None Include=".gitignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="t16.png">
+      <Filter>Resource Files</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="PixelShader.hlsl" />
+    <CopyFileToFolders Include="VertexShader.hlsl" />
   </ItemGroup>
 </Project>

@@ -26,6 +26,8 @@ ATOM             MyRegisterClass(HINSTANCE hInstance);
 HWND             InitInstance(HINSTANCE, int);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
+StepTimer s_timer;
+
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow)
 {
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -45,6 +47,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow)
         return EXIT_FAILURE;
     }
 
+    s_timer.SetFixedTimeStep(true);
+
     MSG msg = { 0 };
     while (msg.message != WM_QUIT)
     {
@@ -55,8 +59,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow)
         }
         else
         {
-            renderer.Frame();
-            Sleep(250);
+            s_timer.Tick([&]() {
+                renderer.Frame();
+            });
+            Sleep(10);
         }
     }
 

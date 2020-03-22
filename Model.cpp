@@ -4,7 +4,10 @@ Model::Model() :
     pVertexShader(NULL),
     pPixelShader(NULL),
     pLayout(NULL),
-    pBuffer(NULL)
+    pBuffer(NULL),
+    pTexture(NULL),
+    pSampleState(NULL),
+    vSize(0)
 {
 }
 
@@ -12,7 +15,7 @@ Model::~Model()
 {
 }
 
-HRESULT Model::InitModel(ID3D11Device* pDevice)
+HRESULT Model::InitModel(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext)
 {
     HRESULT hr = S_OK;
 
@@ -30,6 +33,15 @@ HRESULT Model::InitModel(ID3D11Device* pDevice)
         return hr;
     }
 
+    hr = InitTexture(TEXT("t16.png"), pDevice, pDeviceContext);
+    if (FAILED(hr))
+    {
+        // Free Geometry
+        SafeRelease(&pBuffer, TEXT("Model::ID3D11Buffer"));
+        SafeRelease(&pLayout, TEXT("Model::ID3D11InputLayout"));
+        return hr;
+    }
+
     return hr;
 }
 
@@ -40,49 +52,271 @@ HRESULT Model::InitGeometry(ID3D11Device* pDevice)
         return E_INVALIDARG;
     }
 
-    CustomVertex verticies[] =
+    /*CustomVertex verticies[] =
     {
         {
             DirectX::XMFLOAT3(0.7f, 0.0f, 0.7f),
             DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
-            DirectX::XMFLOAT3(0.5f, 0.7f, 0.5f),
-            DirectX::XMFLOAT2(1.0f, 0.0f)
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.0f, 1.0f)
         },
         {
             DirectX::XMFLOAT3(-0.7f, 0.5f, 0.7f),
             DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
-            DirectX::XMFLOAT3(0.5f, 0.7f, 0.5f),
-            DirectX::XMFLOAT2(0.0f, 1.0f)
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.0f, 0.0f)
         },
         {
             DirectX::XMFLOAT3(-0.7f, 0.0f, -0.7f),
             DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
-            DirectX::XMFLOAT3(0.5f, 0.7f, 0.5f),
-            DirectX::XMFLOAT2(1.0f, 1.0f)
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(1.0f, 0.0f)
         },
         {
             DirectX::XMFLOAT3(-0.7f, 0.0f, -0.7f),
             DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
-            DirectX::XMFLOAT3(0.6f, 0.5f, 0.7f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f),
             DirectX::XMFLOAT2(1.0f, 0.0f)
         },
         {
             DirectX::XMFLOAT3(0.7f, -0.5f, -0.7f),
             DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
-            DirectX::XMFLOAT3(0.6f, 0.5f, 0.7f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f),
             DirectX::XMFLOAT2(1.0f, 1.0f)
         },
         {
             DirectX::XMFLOAT3(0.7f, 0.0f, 0.7f),
             DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
-            DirectX::XMFLOAT3(0.6f, 0.5f, 0.7f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f),
             DirectX::XMFLOAT2(0.0f, 1.0f)
+        }
+    };*/
+
+    CustomVertex verticies[] =
+    {
+        {
+            DirectX::XMFLOAT3(-0.526658f, 0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.875f, 0.5f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, 0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, 0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.5f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, 0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, -0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 1.0f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, -0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, 0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.0f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, -0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.25f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, -0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.0f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, -0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.5f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, -0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.125f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, -0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.125f, 0.5f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, 0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.5f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, -0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, -0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.5f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, 0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.25f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, -0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.5f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, -0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.25f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, 0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.875f, 0.5f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, 0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.875f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, 0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, 0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, 0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 1.0f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, -0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 1.0f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, 0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.0f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, 0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.25f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, -0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.25f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, -0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.5f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, -0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, -0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.125f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, 0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.5f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, 0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, -0.526658f, 0.526658f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.75f)
+        },
+        {
+            DirectX::XMFLOAT3(-0.526658f, 0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.25f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, 0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.625f, 0.5f)
+        },
+        {
+            DirectX::XMFLOAT3(0.526658f, -0.526658f, -0.526658f),
+            DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
+            DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f),
+            DirectX::XMFLOAT2(0.375f, 0.5f)
         }
     };
 
+    vSize = ARRAYSIZE(verticies);
+
     D3D11_BUFFER_DESC bufferDesc;
     bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    bufferDesc.ByteWidth = sizeof(CustomVertex) * 6;
+    bufferDesc.ByteWidth = sizeof(CustomVertex) * vSize;
     bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bufferDesc.CPUAccessFlags = 0;
     bufferDesc.MiscFlags = 0;
@@ -153,6 +387,54 @@ HRESULT Model::InitPipeline(ID3D11Device* pDevice)
     return hr;
 }
 
+HRESULT Model::InitTexture(LPCTSTR filename, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext)
+{
+    HRESULT hr = S_OK;
+
+    Texture texture;
+    hr = texture.Init(filename, pDevice, pDeviceContext);
+    pTexture = texture.Get();
+    pTexture->AddRef();
+    texture.Release();    
+
+    D3D11_SAMPLER_DESC samplerDesc;
+    ZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT; // D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+    samplerDesc.BorderColor[0] = 0;
+    samplerDesc.BorderColor[1] = 0;
+    samplerDesc.BorderColor[2] = 0;
+    samplerDesc.BorderColor[3] = 0;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    hr = pDevice->CreateSamplerState(&samplerDesc, &pSampleState);
+    if (FAILED(hr)) 
+    {
+        SafeRelease(&pTexture, TEXT("Model::ID3D11Texture2D"));
+        return hr;
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+    ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+    shaderResourceViewDesc.Format = texture.GetFormat();
+    shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+    hr = pDevice->CreateShaderResourceView(pTexture, &shaderResourceViewDesc, &pShaderResourceView);
+    if (FAILED(hr)) 
+    {
+        pTexture->Release();
+    }
+
+    return hr;
+}
+
 void Model::Render(ID3D11DeviceContext* pDeviceContext)
 {
     if (!pDeviceContext)
@@ -167,11 +449,16 @@ void Model::Render(ID3D11DeviceContext* pDeviceContext)
     pDeviceContext->IASetInputLayout(pLayout);
     pDeviceContext->PSSetShader(pPixelShader, 0, 0);
     pDeviceContext->VSSetShader(pVertexShader, 0, 0);
-    pDeviceContext->Draw(6, 0);
+    pDeviceContext->PSSetShaderResources(0, 1, &pShaderResourceView);
+    pDeviceContext->PSSetSamplers(0, 1, &pSampleState);
+    pDeviceContext->Draw(vSize, 0);
 }
 
 void Model::Release()
 {
+    SafeRelease(&pTexture, TEXT("Model::ID3D11Texture2D"));
+    SafeRelease(&pSampleState, TEXT("Model::ID3D11SamplerState"));
+    SafeRelease(&pShaderResourceView, TEXT("Model::ID3D11ShaderResourceView"));
     SafeRelease(&pVertexShader, TEXT("Model::ID3D11VertexShader"));
     SafeRelease(&pPixelShader, TEXT("Model::ID3D11PixelShader"));
     SafeRelease(&pLayout, TEXT("Model::ID3D11InputLayout"));

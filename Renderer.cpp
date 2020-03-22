@@ -64,6 +64,7 @@ Renderer::Renderer(HWND hWnd) :
     pDeviceContext(NULL),
     pSwapChain(NULL),
     pBackBuffer(NULL),
+    pDepthStencil(NULL),
     pRenderTarget(NULL),
     pConstantBuffer(NULL)
 {
@@ -94,7 +95,7 @@ HRESULT Renderer::Init()
         return hr;
     }
 
-    hr = model.InitModel(pDevice);
+    hr = model.InitModel(pDevice, pDeviceContext);
     if (FAILED(hr))
     {
         // Free DrawSurface
@@ -229,6 +230,32 @@ HRESULT Renderer::InitDrawSurface()
     }
     pDeviceContext->OMSetRenderTargets(1, &pRenderTarget, nullptr);
 
+    D3D11_TEXTURE2D_DESC descDepth;
+    descDepth.Width = bbDesc.Width;
+    descDepth.Height = bbDesc.Height;
+    descDepth.MipLevels = 1;
+    descDepth.ArraySize = 1;
+    descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // pDeviceSettings->d3d11.AutoDepthStencilFormat;
+    descDepth.SampleDesc.Count = 1;
+    descDepth.SampleDesc.Quality = 0;
+    descDepth.Usage = D3D11_USAGE_DEFAULT;
+    descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    descDepth.CPUAccessFlags = 0;
+    descDepth.MiscFlags = 0;
+    hr = pDevice->CreateTexture2D(&descDepth, NULL, &pDepthStencil);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    hr = pDevice->CreateDepthStencilView(pDepthStencil, NULL, &pDepthStencilView);
+    if (FAILED(hr)) 
+    {
+        return hr;
+    }
+
+    pDeviceContext->OMSetRenderTargets(1, &pRenderTarget, pDepthStencilView);
+
     return hr;
 }
 
@@ -248,7 +275,7 @@ HRESULT Renderer::InitConstantBuffer()
 
     // Set view matrix
     buffer.view = DirectX::XMMatrixLookAtLH(
-        DirectX::XMVectorSet(2.0f, 2.0f, 2.0f, 0.0f), 
+        DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f), 
         DirectX::XMVectorZero(), 
         DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)
     );
@@ -332,7 +359,8 @@ void Renderer::BeginScene()
 {
     const FLOAT clearColor[4] = { 0.0f, 0.2f, 0.4f, 1.0f };
     pDeviceContext->ClearRenderTargetView(pRenderTarget, clearColor);
-    pDeviceContext->OMSetRenderTargets(1, &pRenderTarget, nullptr);
+    pDeviceContext->OMSetRenderTargets(1, &pRenderTarget, pDepthStencilView);
+    pDeviceContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
     pDeviceContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
 }
 

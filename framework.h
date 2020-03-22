@@ -41,6 +41,8 @@ VOID SafeRelease(T** ptr, CONST TCHAR* description)
     }
 }
 
+#include "Timer.h"
+
 #include <d3d.h>
 #include <d3dcommon.h>
 #include <d3d11.h>
@@ -51,6 +53,7 @@ VOID SafeRelease(T** ptr, CONST TCHAR* description)
 
 #include "Model.h"
 #include "Renderer.h"
+#include "Texture.h"
 
 // C RunTime Header Files
 #include <stdlib.h>
