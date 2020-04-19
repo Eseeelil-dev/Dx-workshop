@@ -13,6 +13,8 @@
 #include <d3dcompiler.h>
 
 #pragma comment(lib, "D3D11.lib")
+#pragma comment(lib, "dinput8.lib")
+#pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -39,9 +41,17 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow)
     if (!hWnd) return EXIT_FAILURE; 
 
     Renderer renderer(hWnd);
+    Input input;
     
     HRESULT hr = renderer.Init();
     if (FAILED(hr)) 
+    {
+        renderer.Release();
+        return EXIT_FAILURE;
+    }
+
+    hr = input.Init(hWnd);
+    if (FAILED(hr))
     {
         renderer.Release();
         return EXIT_FAILURE;
@@ -59,6 +69,15 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow)
         }
         else
         {
+            if (input.IsKeyPressed(DIK_ESCAPE))
+            {
+                renderer.Release();
+                CloseWindow(hWnd);
+                PostQuitMessage(0);
+                continue;
+            }
+
+            input.Update(0.0);
             s_timer.Tick([&]() {
                 renderer.Frame();
             });
@@ -109,7 +128,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
     case WM_CLOSE:
-        Renderer::gpRenderer->Release();
         return DefWindowProc(hWnd, message, wParam, lParam);
         break;
     case WM_DESTROY:

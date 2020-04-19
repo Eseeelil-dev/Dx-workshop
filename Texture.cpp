@@ -624,5 +624,7 @@ ID3D11Texture2D* Texture::Get() const
 
 DXGI_FORMAT Texture::GetFormat() const 
 {
-    return format;
+    D3D11_TEXTURE2D_DESC texDex;
+    pTexture->GetDesc(&texDex);
+    return texDex.Format;
 }

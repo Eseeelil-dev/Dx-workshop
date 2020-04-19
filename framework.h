@@ -29,7 +29,7 @@ VOID SafeRelease(T** ptr, CONST TCHAR* description)
         ULONG count = temp->Release();
         if (count == 0) {
             if (description) {
-                OutputDebugStringFormat(TEXT("DirectX %s is released\n"), description);
+                OutputDebugStringFormat(TEXT("DirectX %s is <FREE>\n"), description);
             }
             *ptr = nullptr;
         }
@@ -54,6 +54,7 @@ VOID SafeRelease(T** ptr, CONST TCHAR* description)
 #include "Model.h"
 #include "Renderer.h"
 #include "Texture.h"
+#include "Input.h"
 
 // C RunTime Header Files
 #include <stdlib.h>
